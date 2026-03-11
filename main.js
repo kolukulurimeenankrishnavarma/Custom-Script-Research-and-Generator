@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nicheInput = document.getElementById('nicheInput');
     const contentStyleInput = document.getElementById('contentStyleInput');
     const toneInput = document.getElementById('toneInput');
-    const contentTypeInput = document.getElementById('contentType');
-    const animationInput = document.getElementById('animations');
+    const contentTypeInput = document.getElementById('contentTypeInput');
+    const animationInput = document.getElementById('animationInput');
     const difficultyInput = document.getElementById('difficulty');
-    const hookToggle = document.getElementById('includeHook');
-    const seoToggle = document.getElementById('includeSEO');
+    const hookToggle = document.getElementById('hookToggle');
+    const seoToggle = document.getElementById('seoToggle');
 
     // UI Elements
     const progressSection = document.getElementById('progressSection');
