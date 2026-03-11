@@ -9,10 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const nicheInput = document.getElementById('nicheInput');
     const contentStyleInput = document.getElementById('contentStyleInput');
     const toneInput = document.getElementById('toneInput');
-    const contentTypeInput = document.getElementById('contentTypeInput');
-    const animationInput = document.getElementById('animationInput');
-    const hookToggle = document.getElementById('hookToggle');
-    const seoToggle = document.getElementById('seoToggle');
+    const contentTypeInput = document.getElementById('contentType');
+    const animationInput = document.getElementById('animations');
+    const difficultyInput = document.getElementById('difficulty');
+    const hookToggle = document.getElementById('includeHook');
+    const seoToggle = document.getElementById('includeSEO');
 
     // UI Elements
     const progressSection = document.getElementById('progressSection');
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scriptContent = document.getElementById('scriptContent');
     const resetBtn = document.getElementById('resetBtn');
     const copyBtn = document.getElementById('copyBtn');
-    const copyText = document.getElementById('copyText');
+    const copyText = copyBtn.querySelector('span');
     const historyGrid = document.getElementById('historyGrid');
 
     // Modal Elements
@@ -113,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tone: toneInput.value,
             contentType: contentTypeInput.value,
             animations: animationInput.value,
+            difficulty: difficultyInput.value.trim() || 'General Public',
             includeHook: hookToggle.checked,
             includeSEO: seoToggle.checked
         };
@@ -250,6 +252,7 @@ TOPIC: ${opt.topic}
 NICHE (Subject Area): ${opt.niche}
 CONTENT STYLE (Format): ${opt.contentStyle}
 VOICE TONE: ${opt.tone}
+TARGET AUDIENCE & DIFFICULTY: ${opt.difficulty}
 TARGET DURATION: ${opt.duration} (${wordCount})
 PRODUCTION STYLE: ${opt.contentType}
 
@@ -259,12 +262,13 @@ INSTRUCTIONS:
 3. The speaking roles MUST be denoted as **${speaker}:**.
 4. Include visual and audio cues. Format them EXACTLY like this: [VISUAL: description] or [AUDIO: description].
 5. Do NOT include ANY HTML tags in your response. Only use Markdown.
+6. Crucially, strictly align the vocabulary, concept explanations, and analogies with the specified TARGET AUDIENCE & DIFFICULTY level (${opt.difficulty}).
 `;
 
         if(opt.includeHook) {
-            prompt += `6. Start with a powerful, attention-grabbing Hook chapter.\n`;
+            prompt += `7. Start with a powerful, attention-grabbing Hook chapter.\n`;
         } else {
-            prompt += `6. Skip the intro/hook and dive straight into the main content.\n`;
+            prompt += `7. Skip the intro/hook and dive straight into the main content.\n`;
         }
 
         if(opt.includeSEO) {
