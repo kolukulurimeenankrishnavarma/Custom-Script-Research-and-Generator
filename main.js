@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // New Inputs
     const nicheInput = document.getElementById('nicheInput');
+    const contentStyleInput = document.getElementById('contentStyleInput');
     const toneInput = document.getElementById('toneInput');
     const contentTypeInput = document.getElementById('contentTypeInput');
     const animationInput = document.getElementById('animationInput');
@@ -28,11 +29,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyText = document.getElementById('copyText');
     const historyGrid = document.getElementById('historyGrid');
 
+    // Modal Elements
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveKeyBtn = document.getElementById('saveKeyBtn');
+
     let currentScriptText = "";
     let scriptHistory = JSON.parse(localStorage.getItem('yt_script_history') || '[]');
+    let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
 
-    // Initialize History
+    // Initialize UI
     renderHistory();
+    if(geminiApiKey) apiKeyInput.value = geminiApiKey;
+
+    // Modal Logic
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+    });
+
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+    });
+
+    settingsModal.addEventListener('click', (e) => {
+        if(e.target === settingsModal) {
+            settingsModal.classList.add('hidden');
+        }
+    });
+
+    saveKeyBtn.addEventListener('click', () => {
+        const key = apiKeyInput.value.trim();
+        if(key) {
+            localStorage.setItem('gemini_api_key', key);
+            geminiApiKey = key;
+            saveKeyBtn.textContent = "Saved!";
+            saveKeyBtn.classList.add('btn-success');
+            setTimeout(() => {
+                settingsModal.classList.add('hidden');
+                saveKeyBtn.textContent = "Save API Key";
+                saveKeyBtn.classList.remove('btn-success');
+            }, 1000);
+        }
+    });
 
     // Simulated Deep Research Steps
     const researchSteps = [
@@ -50,10 +90,16 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        if (!geminiApiKey) {
+            settingsModal.classList.remove('hidden');
+            return;
+        }
+
         const options = {
             topic: topicInput.value.trim(),
             duration: durationInput.value,
             niche: nicheInput.value,
+            contentStyle: contentStyleInput.value,
             tone: toneInput.value,
             contentType: contentTypeInput.value,
             animations: animationInput.value,
@@ -71,21 +117,52 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = '0%';
         progressLog.innerHTML = '';
         
-        await runResearchSimulation();
+        // Start Progress Animation
+        const progressInterval = startProgressAnimation();
 
-        // Generate Script
-        const generatedHtml = generateScriptLogic(options);
+        try {
+            // Generate Prompt
+            const prompt = constructGeminiPrompt(options);
+            
+            // Call Gemini API
+            logProgress("Connecting to Google Gemini API...");
+            const generatedMarkdown = await callGeminiAPI(prompt, geminiApiKey);
+            
+            // Convert Markdown to our HTML structure
+            logProgress("Parsing AI output and formatting script...");
+            const generatedHtml = parseScriptToHtml(generatedMarkdown, options);
 
-        // Save to History
-        saveToHistory({
-            id: Date.now(),
-            topic: options.topic,
-            date: new Date().toLocaleDateString(),
-            html: generatedHtml,
-            options: options
-        });
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressSubtitle.textContent = "Research Complete. Script generated.";
 
-        displayOutput(options.topic, options.duration, generatedHtml);
+            // Save to History
+            saveToHistory({
+                id: Date.now(),
+                topic: options.topic,
+                date: new Date().toLocaleDateString(),
+                html: generatedHtml,
+                options: options
+            });
+
+            setTimeout(() => {
+                displayOutput(options.topic, options.duration, generatedHtml);
+            }, 500);
+
+        } catch (error) {
+            clearInterval(progressInterval);
+            progressSubtitle.textContent = "Analysis Failed.";
+            const errorMsg = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
+            logProgressHTML(errorMsg);
+            progressSubtitle.innerHTML = errorMsg;
+            setTimeout(() => {
+                progressSection.classList.add('hidden');
+                inputSection.classList.remove('hidden');
+                if(error.message.includes('API key')) {
+                    settingsModal.classList.remove('hidden');
+                }
+            }, 3000);
+        }
     });
 
     function displayOutput(topic, duration, html) {
@@ -117,30 +194,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    async function runResearchSimulation() {
-        return new Promise((resolve) => {
-            let currentStep = 0;
-            const totalTime = 4000; 
-            const stepTime = totalTime / researchSteps.length;
+    function startProgressAnimation() {
+        let currentStep = 0;
+        return setInterval(() => {
+            if(currentStep >= researchSteps.length - 1) return; // leave last step for actual completion
+            logProgress(researchSteps[currentStep]);
+            progressBar.style.width = `${(currentStep / researchSteps.length) * 100}%`;
+            currentStep++;
+        }, 1200);
+    }
 
-            const interval = setInterval(() => {
-                if(currentStep >= researchSteps.length) {
-                    clearInterval(interval);
-                    progressBar.style.width = '100%';
-                    progressSubtitle.textContent = "Research Complete. Script generated.";
-                    setTimeout(resolve, 500); 
-                    return;
-                }
+    function logProgress(msg) {
+        const li = document.createElement('li');
+        li.textContent = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+        progressLog.appendChild(li);
+        progressLog.scrollTop = progressLog.scrollHeight;
+        progressSubtitle.textContent = msg;
+    }
 
-                const li = document.createElement('li');
-                li.innerHTML = `> [${new Date().toLocaleTimeString()}] ${researchSteps[currentStep]}`;
-                progressLog.appendChild(li);
-                progressLog.scrollTop = progressLog.scrollHeight;
-                progressSubtitle.textContent = researchSteps[currentStep];
-                progressBar.style.width = `${(currentStep / researchSteps.length) * 100}%`;
-                currentStep++;
-            }, stepTime);
-        });
+    function logProgressHTML(htmlMsg) {
+        const li = document.createElement('li');
+        li.innerHTML = `> [${new Date().toLocaleTimeString()}] ${htmlMsg}`;
+        progressLog.appendChild(li);
+        progressLog.scrollTop = progressLog.scrollHeight;
     }
 
     function getDurationLabel(dur) {
@@ -149,64 +225,123 @@ document.addEventListener('DOMContentLoaded', () => {
         return "15-20 Minutes (approx 2500+ words)";
     }
 
-    function generateScriptLogic(opt) {
-        let segmentCount = 2; 
-        if(opt.duration === 'medium') segmentCount = 4;
-        if(opt.duration === 'long') segmentCount = 6;
+    // --- AI PROMPT ENGINEERING ---
+    function constructGeminiPrompt(opt) {
+        let wordCount = "600-800 words";
+        if(opt.duration === 'medium') wordCount = "1500-1800 words";
+        if(opt.duration === 'long') wordCount = "2500+ words";
 
-        let html = ``;
-        
-        // SEO SECTION
-        if(opt.includeSEO) {
-            html += `<div class="visual-cue"><strong>SEO & METADATA:</strong><br>
-            Primary Keyword: ${opt.topic}<br>
-            Secondary Keywords: ${opt.niche}, ${opt.topic} explained, ${opt.topic} guide<br>
-            Recommended Title Idea: The Secret Logic of ${opt.topic}: A Complete Guide</div>`;
-        }
+        const hasFace = opt.contentType !== 'faceless';
+        const speaker = hasFace ? "HOST (On Camera) / HOST (V.O)" : "NARRATOR (V.O)";
 
-        html += `<h2>Script: ${opt.topic}</h2>`;
+        let prompt = `You are a world-class, premium YouTube scriptwriter. Your task is to write a highly engaging, deeply researched, and beautifully structured video script.
         
-        // MUSIC CUE
-        const musicStyle = opt.tone === 'serious' ? 'Cinematic and heavy' : (opt.tone === 'humorous' ? 'Quirky and lighthearted' : 'Upbeat and energetic');
-        html += `<div class="audio-cue">[MUSIC: ${musicStyle}. Building momentum from the first second.]</div>`;
-        
-        // HOOK
+TOPIC: ${opt.topic}
+NICHE (Subject Area): ${opt.niche}
+CONTENT STYLE (Format): ${opt.contentStyle}
+VOICE TONE: ${opt.tone}
+TARGET DURATION: ${opt.duration} (${wordCount})
+PRODUCTION STYLE: ${opt.contentType}
+
+INSTRUCTIONS:
+1. Write a complete script meeting the target word count.
+2. Structure the script using clear markdown headings (e.g., ## Chapter 1: Title).
+3. The speaking roles MUST be denoted as **${speaker}:**.
+4. Include visual and audio cues. Format them EXACTLY like this: [VISUAL: description] or [AUDIO: description].
+5. Do NOT include ANY HTML tags in your response. Only use Markdown.
+`;
+
         if(opt.includeHook) {
-            html += `<h3>Chapter 1: The Hook (0:00 - 1:00)</h3>`;
-            const hookVisual = opt.animations === 'detailed' ? 
-                `[ANIMATION PROMPT: A hyper-realistic slow motion tracking shot of an object representing ${opt.topic}, glowing with neon energy, 8k resolution, cinematic lighting.]` : 
-                `[SCENE START] Rapid montage: High quality footage relating to ${opt.topic}.`;
-            
-            html += `<div class="visual-cue">${hookVisual}</div>`;
-            
-            if(opt.tone === 'serious') {
-                html += `<p><strong>HOST:</strong> We live in an era defined by ${opt.topic}. But behind the surface lies a complexity that most ignore. Today, we reveal that truth.</p>`;
-            } else if(opt.tone === 'humorous') {
-                html += `<p><strong>HOST:</strong> Look, let's be real. ${opt.topic} sounds like something that would make your brain melt. But don't worry, I've got the liquid nitrogen ready. Let's dive in.</p>`;
-            } else {
-                html += `<p><strong>HOST:</strong> Have you ever wondered how ${opt.topic} actually works? It’s everywhere, yet it’s one of the biggest mysteries of our daily lives.</p>`;
+            prompt += `6. Start with a powerful, attention-grabbing Hook chapter.\n`;
+        } else {
+            prompt += `6. Skip the intro/hook and dive straight into the main content.\n`;
+        }
+
+        if(opt.includeSEO) {
+            prompt += `7. Before the script begins, provide a "## SEO Metadata" section with a Primary Keyword, 3 Secondary Keywords, and an optimized Clickable Title.\n`;
+        }
+
+        if(opt.animations === 'detailed') {
+            prompt += `8. For [VISUAL] cues, write highly detailed, descriptive prompts suitable for generating B-roll with an AI video/image generator (e.g., "A hyper-realistic 3D render of a glowing neural network pulsing with blue light, 8k resolution, cinematic camera pan").\n`;
+        } else {
+            prompt += `8. For [VISUAL] cues, use standard video editing instructions (e.g., "Stock footage of a city at night").\n`;
+        }
+
+        return prompt;
+    }
+
+    async function callGeminiAPI(prompt, apiKey) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{
+                parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 8192,
             }
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || "Failed to fetch from Gemini API");
         }
 
-        // BODY SEGMENTS
-        for(let i = 1; i <= segmentCount; i++) {
-            html += `<h3>Chapter ${i+1}: Segment ${i}</h3>`;
-            const bodyVisual = opt.animations === 'detailed' ? 
-                `[ANIMATION PROMPT: A wide shot of a futuristic data-driven landscape representing the ${opt.niche} aspects of ${opt.topic}. Digital particles floating in 3D space.]` : 
-                `[B-ROLL] Kinetic typography animation highlighting key concepts of ${opt.topic}.`;
-            
-            html += `<div class="visual-cue">${bodyVisual}</div>`;
-            
-            const speaker = opt.contentType === 'faceless' ? 'NARRATOR' : 'HOST';
-            html += `<p><strong>${speaker}:</strong> Let's break down the ${opt.niche} perspective. In the world of ${opt.niche}, ${opt.topic} isn't just a concept—it's a tool. Think of it like a digital bridge connecting disparate ideas.</p>`;
-            html += `<div class="audio-cue">[SFX: Subtle digital pulse]</div>`;
-            html += `<p><strong>${speaker}:</strong> The reason this matters is simple. If you take away the noise, what you're left with is a fundamental principle that drives everything.</p>`;
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0].content.parts.length > 0) {
+            return data.candidates[0].content.parts[0].text;
+        } else {
+            throw new Error("Unexpected API response structure.");
         }
+    }
 
-        // OUTRO
-        html += `<h3>Final Chapter: Conclusion</h3>`;
-        html += `<p><strong>HOST:</strong> So, the next time you encounter ${opt.topic}, you'll see the patterns. You'll understand the logic.</p>`;
-        html += `<p><strong>HOST:</strong> If you found this ${opt.niche} breakdown helpful, hit that like button. And for more deep dives into ${opt.topic} and beyond, make sure to subscribe.</p>`;
+    function parseScriptToHtml(markdown, opt) {
+        // Basic Markdown to HTML conversion
+        let html = markdown;
+
+        // Escape HTML to prevent XSS (basic)
+        html = html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        // Headers
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+        // Bold text and Speakers
+        html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+
+        // Format Visual and Audio cues
+        html = html.replace(/\[VISUAL:(.*?)\]/gim, '<div class="visual-cue"><i class="fa-solid fa-video"></i> <span>$1</span></div>');
+        html = html.replace(/\[AUDIO:(.*?)\]/gim, '<div class="audio-cue"><i class="fa-solid fa-music"></i> <span>$1</span></div>');
+        
+        // Handle alternative cue formats the AI might use
+        html = html.replace(/\[VISUAL CUE:(.*?)\]/gim, '<div class="visual-cue"><i class="fa-solid fa-video"></i> <span>$1</span></div>');
+        html = html.replace(/\[AUDIO CUE:(.*?)\]/gim, '<div class="audio-cue"><i class="fa-solid fa-music"></i> <span>$1</span></div>');
+
+        // Paragraphs (split by double newline)
+        const paragraphs = html.split(/\n\n+/);
+        html = paragraphs.map(p => {
+            p = p.trim();
+            if (p.startsWith('<h') || p.startsWith('<div class="visual-cue"') || p.startsWith('<div class="audio-cue"')) {
+                return p;
+            } else if (p) {
+                return `<p>${p}</p>`;
+            }
+            return '';
+        }).join('\n');
 
         return html;
     }
