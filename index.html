@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepMind Script Generator - Premium Edition</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Highlight.js for Markdown styling (optional syntax highlighting) -->
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="grid-overlay"></div>
+
+    <main class="container">
+        <!-- Header -->
+        <header class="hero">
+            <div class="badge">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>AI Powered Deep Research</span>
+            </div>
+            <h1 class="title">Generate <span class="gradient-text">Masterpiece</span> Video Scripts</h1>
+            <p class="subtitle">Enter a topic and duration. Our algorithmic engine performs deep research, simplifies complex concepts, and generates an authentic, engaging script entirely from scratch.</p>
+        </header>
+
+        <!-- Input Section -->
+        <section class="card input-section" id="inputSection">
+            <form id="scriptForm">
+                <div class="form-group">
+                    <label for="topicInput">What is your video about?</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                        <input type="text" id="topicInput" placeholder="e.g. The Physics of Black Holes in Layman Terms" required autocomplete="off">
+                    </div>
+                </div>
+                
+                <div class="form-group row">
+                    <div class="col">
+                        <label for="durationInput">Target Duration</label>
+                        <select id="durationInput" required>
+                            <option value="" disabled selected>Select duration...</option>
+                            <option value="short">Short (3-5 mins)</option>
+                            <option value="medium">Medium (8-12 mins)</option>
+                            <option value="long">Long In-Depth (15-20 mins)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="generateBtn">
+                    <span>Initiate Deep Research</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- Loading / Progress Section (Hidden initially) -->
+        <section class="card progress-section hidden" id="progressSection">
+            <div class="loader-container">
+                <div class="spinner"></div>
+                <h3 id="progressTitle">Initializing Research Sequence</h3>
+                <p id="progressSubtitle">Connecting to local knowledge base...</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <ul class="progress-log" id="progressLog">
+                    <!-- Logs injected by JS -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- Output Section (Hidden initially) -->
+        <section class="card output-section hidden" id="outputSection">
+            <div class="output-header">
+                <h2>Generated Script: <span id="outputTopic" class="gradient-text"></span></h2>
+                <div class="action-buttons">
+                    <button class="btn-secondary" id="copyBtn" title="Copy to Clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                        <span id="copyText">Copy</span>
+                    </button>
+                    <button class="btn-secondary" id="resetBtn" title="Create New">
+                        <i class="fa-solid fa-rotate-right"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <div class="script-metadata">
+                <div class="meta-item"><i class="fa-regular fa-clock"></i> <span id="metaDuration"></span></div>
+                <div class="meta-item"><i class="fa-solid fa-check-circle"></i> <span id="metaStatus">100% Unique & Researched</span></div>
+            </div>
+
+            <div class="script-content" id="scriptContent">
+                <!-- Script injected here -->
+            </div>
+        </section>
+    </main>
+
+    <script src="main.js"></script>
+</body>
+</html>
