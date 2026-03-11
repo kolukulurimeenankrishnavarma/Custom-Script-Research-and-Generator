@@ -1,9 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Basic Inputs
     const inputSection = document.getElementById('inputSection');
     const form = document.getElementById('scriptForm');
     const topicInput = document.getElementById('topicInput');
     const durationInput = document.getElementById('durationInput');
     
+    // New Inputs
+    const nicheInput = document.getElementById('nicheInput');
+    const toneInput = document.getElementById('toneInput');
+    const contentTypeInput = document.getElementById('contentTypeInput');
+    const animationInput = document.getElementById('animationInput');
+    const hookToggle = document.getElementById('hookToggle');
+    const seoToggle = document.getElementById('seoToggle');
+
+    // UI Elements
     const progressSection = document.getElementById('progressSection');
     const progressSubtitle = document.getElementById('progressSubtitle');
     const progressBar = document.getElementById('progressBar');
@@ -16,8 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('resetBtn');
     const copyBtn = document.getElementById('copyBtn');
     const copyText = document.getElementById('copyText');
+    const historyGrid = document.getElementById('historyGrid');
 
     let currentScriptText = "";
+    let scriptHistory = JSON.parse(localStorage.getItem('yt_script_history') || '[]');
+
+    // Initialize History
+    renderHistory();
 
     // Simulated Deep Research Steps
     const researchSteps = [
@@ -25,20 +40,28 @@ document.addEventListener('DOMContentLoaded', () => {
         "Querying academic databases and credible sources...",
         "Cross-referencing factual data...",
         "Extracting key concepts...",
-        "Simplifying complex vernacular...",
+        "Applying niche-specific narrative frameworks...",
+        "Adjusting linguistic tone and vocabulary...",
         "Structuring narrative flow (Hook, Body, CTA)...",
-        "Synthesizing b-roll visual cues...",
-        "Drafting final script timeline...",
+        "Synthesizing visual direction and cues...",
         "Finalizing formatting..."
     ];
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const topic = topicInput.value.trim();
-        const duration = durationInput.value;
+        const options = {
+            topic: topicInput.value.trim(),
+            duration: durationInput.value,
+            niche: nicheInput.value,
+            tone: toneInput.value,
+            contentType: contentTypeInput.value,
+            animations: animationInput.value,
+            includeHook: hookToggle.checked,
+            includeSEO: seoToggle.checked
+        };
 
-        if(!topic || !duration) return;
+        if(!options.topic || !options.duration) return;
 
         // Hide input, show progress
         inputSection.classList.add('hidden');
@@ -51,19 +74,30 @@ document.addEventListener('DOMContentLoaded', () => {
         await runResearchSimulation();
 
         // Generate Script
-        const generatedHtml = generateScriptLogic(topic, duration);
+        const generatedHtml = generateScriptLogic(options);
 
-        // Hide progress, show output
+        // Save to History
+        saveToHistory({
+            id: Date.now(),
+            topic: options.topic,
+            date: new Date().toLocaleDateString(),
+            html: generatedHtml,
+            options: options
+        });
+
+        displayOutput(options.topic, options.duration, generatedHtml);
+    });
+
+    function displayOutput(topic, duration, html) {
         progressSection.classList.add('hidden');
         outputSection.classList.remove('hidden');
         
         outputTopic.textContent = topic;
         metaDuration.textContent = `Estimated duration: ${getDurationLabel(duration)}`;
-        scriptContent.innerHTML = generatedHtml;
-
-        // Extract raw text for copying (stripping html but keeping structure vaguely)
-        currentScriptText = extractTextFromHtml(generatedHtml);
-    });
+        scriptContent.innerHTML = html;
+        currentScriptText = extractTextFromHtml(html);
+        window.scrollTo(0, 0);
+    }
 
     resetBtn.addEventListener('click', () => {
         outputSection.classList.add('hidden');
@@ -86,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function runResearchSimulation() {
         return new Promise((resolve) => {
             let currentStep = 0;
-            const totalTime = 6000; // 6 seconds total simulation
+            const totalTime = 4000; 
             const stepTime = totalTime / researchSteps.length;
 
             const interval = setInterval(() => {
@@ -94,21 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(interval);
                     progressBar.style.width = '100%';
                     progressSubtitle.textContent = "Research Complete. Script generated.";
-                    setTimeout(resolve, 500); // slight pause before transition
+                    setTimeout(resolve, 500); 
                     return;
                 }
 
-                // Update UI log
                 const li = document.createElement('li');
                 li.innerHTML = `> [${new Date().toLocaleTimeString()}] ${researchSteps[currentStep]}`;
                 progressLog.appendChild(li);
-                
-                // Keep log scrolled down conceptually (handled via css mask mostly, but good practice)
                 progressLog.scrollTop = progressLog.scrollHeight;
-                
                 progressSubtitle.textContent = researchSteps[currentStep];
                 progressBar.style.width = `${(currentStep / researchSteps.length) * 100}%`;
-                
                 currentStep++;
             }, stepTime);
         });
@@ -120,57 +149,64 @@ document.addEventListener('DOMContentLoaded', () => {
         return "15-20 Minutes (approx 2500+ words)";
     }
 
-    // A powerful independent algorithm to generate a highly detailed script structure
-    // Since we are not using an external API, we generate a high-quality, dynamically tailored script template.
-    // We break it into Intro/Hook, Segments, Conclusion based on duration.
-    function generateScriptLogic(topic, duration) {
-        let segmentCount = 2; // short
-        if(duration === 'medium') segmentCount = 4;
-        if(duration === 'long') segmentCount = 6;
+    function generateScriptLogic(opt) {
+        let segmentCount = 2; 
+        if(opt.duration === 'medium') segmentCount = 4;
+        if(opt.duration === 'long') segmentCount = 6;
 
         let html = ``;
         
-        // TITLE
-        html += `<h2>Script: The Ultimate Guide to ${topic}</h2>`;
+        // SEO SECTION
+        if(opt.includeSEO) {
+            html += `<div class="visual-cue"><strong>SEO & METADATA:</strong><br>
+            Primary Keyword: ${opt.topic}<br>
+            Secondary Keywords: ${opt.niche}, ${opt.topic} explained, ${opt.topic} guide<br>
+            Recommended Title Idea: The Secret Logic of ${opt.topic}: A Complete Guide</div>`;
+        }
+
+        html += `<h2>Script: ${opt.topic}</h2>`;
         
-        html += `<div class="audio-cue">[MUSIC OUT THE GATE: Upbeat, intriguing, slightly mysterious building track. Something that grabs attention immediately.]</div>`;
+        // MUSIC CUE
+        const musicStyle = opt.tone === 'serious' ? 'Cinematic and heavy' : (opt.tone === 'humorous' ? 'Quirky and lighthearted' : 'Upbeat and energetic');
+        html += `<div class="audio-cue">[MUSIC: ${musicStyle}. Building momentum from the first second.]</div>`;
         
         // HOOK
-        html += `<h3>Chapter 1: The Hook (0:00 - 1:00)</h3>`;
-        html += `<div class="visual-cue">[SCENE START] Rapid montage: High quality footage relating to ${topic}. Text on screen pops up matching the narration. Fast pace editing.</div>`;
-        html += `<p><strong>HOST (On Camera):</strong> Have you ever stopped to wonder about <em>${topic}</em>? It’s something that completely shapes our world, yet almost no one actually understands how it really works.</p>`;
-        html += `<p><strong>HOST (V.O):</strong> Today, we are breaking down the complex reality behind ${topic}. No jargon. No confusing theories. Just the fascinating truth explained so simply, that by the end of this video, you'll be the smartest person in the room.</p>`;
-        html += `<p><strong>HOST (On Camera - leaning in):</strong> We're going to dive deep. And trust me, the truth is stranger than you think.</p>`;
+        if(opt.includeHook) {
+            html += `<h3>Chapter 1: The Hook (0:00 - 1:00)</h3>`;
+            const hookVisual = opt.animations === 'detailed' ? 
+                `[ANIMATION PROMPT: A hyper-realistic slow motion tracking shot of an object representing ${opt.topic}, glowing with neon energy, 8k resolution, cinematic lighting.]` : 
+                `[SCENE START] Rapid montage: High quality footage relating to ${opt.topic}.`;
+            
+            html += `<div class="visual-cue">${hookVisual}</div>`;
+            
+            if(opt.tone === 'serious') {
+                html += `<p><strong>HOST:</strong> We live in an era defined by ${opt.topic}. But behind the surface lies a complexity that most ignore. Today, we reveal that truth.</p>`;
+            } else if(opt.tone === 'humorous') {
+                html += `<p><strong>HOST:</strong> Look, let's be real. ${opt.topic} sounds like something that would make your brain melt. But don't worry, I've got the liquid nitrogen ready. Let's dive in.</p>`;
+            } else {
+                html += `<p><strong>HOST:</strong> Have you ever wondered how ${opt.topic} actually works? It’s everywhere, yet it’s one of the biggest mysteries of our daily lives.</p>`;
+            }
+        }
 
         // BODY SEGMENTS
         for(let i = 1; i <= segmentCount; i++) {
-            html += `<h3>Chapter ${i+1}: Segment Breakdown ${i}</h3>`;
-            html += `<div class="visual-cue">[B-ROLL ID: ${i}01] Kinetic typography animation highlighting key concept. Smooth zoom into an illustrative graphic representing the core structure of ${topic}.</div>`;
-            html += `<p><strong>HOST (V.O):</strong> Let's start with the absolute basics. When people talk about ${topic}, they usually overcomplicate it. Think of it like a massive engine. The first gear in this engine is...</p>`;
-            html += `<div class="audio-cue">[SFX: Subtle 'whoosh' transition sound]</div>`;
-            html += `<p><strong>HOST (On Camera):</strong> The reason this matters is simple. If you take away the noise, what you're left with is a fundamental principle that drives everything. For example, imagine you are trying to build exactly this from scratch...</p>`;
-            html += `<div class="visual-cue">[ANIMATION] Split screen showing a real-world example on the left, and a simplified diagram on the right. Highlight the connections clearly.</div>`;
-            html += `<p><strong>HOST (V.O):</strong> By breaking it down piece by piece, the mechanism behind ${topic} becomes incredibly clear. You don't need a PhD to see the pattern here—you just need to know where to look.</p>`;
-        }
-
-        // Deep Dive / Nuance (For Medium/Long)
-        if(duration === 'medium' || duration === 'long') {
-            html += `<h3>Chapter ${segmentCount+2}: The Deep Dive</h3>`;
-            html += `<div class="audio-cue">[MUSIC SHIFT: Track slows down, becomes more ambient and thoughtful, signaling an important revelation.]</div>`;
-            html += `<div class="visual-cue">[B-ROLL] Slow cinematic pan over high quality stock footage related to the subject. Color grading shifts to cooler tones.</div>`;
-            html += `<p><strong>HOST (On Camera):</strong> But here is where it gets incredibly fascinating. Most people stop at the surface level. But if we dig just a little bit deeper into ${topic}, we find a paradox.</p>`;
-            html += `<p><strong>HOST (V.O):</strong> The system isn't just reacting; it's adapting. It's a feedback loop. And understanding this single loop is the key to mastering the entire concept.</p>`;
+            html += `<h3>Chapter ${i+1}: Segment ${i}</h3>`;
+            const bodyVisual = opt.animations === 'detailed' ? 
+                `[ANIMATION PROMPT: A wide shot of a futuristic data-driven landscape representing the ${opt.niche} aspects of ${opt.topic}. Digital particles floating in 3D space.]` : 
+                `[B-ROLL] Kinetic typography animation highlighting key concepts of ${opt.topic}.`;
+            
+            html += `<div class="visual-cue">${bodyVisual}</div>`;
+            
+            const speaker = opt.contentType === 'faceless' ? 'NARRATOR' : 'HOST';
+            html += `<p><strong>${speaker}:</strong> Let's break down the ${opt.niche} perspective. In the world of ${opt.niche}, ${opt.topic} isn't just a concept—it's a tool. Think of it like a digital bridge connecting disparate ideas.</p>`;
+            html += `<div class="audio-cue">[SFX: Subtle digital pulse]</div>`;
+            html += `<p><strong>${speaker}:</strong> The reason this matters is simple. If you take away the noise, what you're left with is a fundamental principle that drives everything.</p>`;
         }
 
         // OUTRO
-        html += `<h3>Final Chapter: Conclusion & Call to Action</h3>`;
-        html += `<div class="visual-cue">[SCENE START] Host back in the main studio setup. Lighting is warm.</div>`;
-        html += `<p><strong>HOST (On Camera):</strong> So, the next time someone brings up ${topic}, you won't just nod along. You actually know the mechanics behind the magic.</p>`;
-        html += `<p><strong>HOST (V.O):</strong> The universe is full of complex systems, but once you find the right lens to look through, everything makes sense.</p>`;
-        html += `<div class="audio-cue">[OUTRO MUSIC STARTS SWELLING]</div>`;
-        html += `<p><strong>HOST (On Camera):</strong> If you found this explanation helpful, do me a huge favor—hit that like button. It tells the YouTube algorithm that this research is worth sharing. And if you want to keep exploring the hidden mechanics of our world with me, hit subscribe.</p>`;
-        html += `<p><strong>HOST:</strong> I'll see you in the next one!</p>`;
-        html += `<div class="visual-cue">[OUTRO CARD] Subscribe button animation, End screen videos pop up.</div>`;
+        html += `<h3>Final Chapter: Conclusion</h3>`;
+        html += `<p><strong>HOST:</strong> So, the next time you encounter ${opt.topic}, you'll see the patterns. You'll understand the logic.</p>`;
+        html += `<p><strong>HOST:</strong> If you found this ${opt.niche} breakdown helpful, hit that like button. And for more deep dives into ${opt.topic} and beyond, make sure to subscribe.</p>`;
 
         return html;
     }
@@ -179,5 +215,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const temp = document.createElement('div');
         temp.innerHTML = html;
         return temp.textContent || temp.innerText || "";
+    }
+
+    // History Logic
+    function saveToHistory(item) {
+        scriptHistory.unshift(item);
+        if(scriptHistory.length > 3) scriptHistory.pop();
+        localStorage.setItem('yt_script_history', JSON.stringify(scriptHistory));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        if(scriptHistory.length === 0) {
+            historyGrid.innerHTML = '<p class="empty-history">No recent research found.</p>';
+            return;
+        }
+
+        historyGrid.innerHTML = '';
+        scriptHistory.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <h4>${item.topic}</h4>
+                <div class="history-meta">
+                    <span>${item.date}</span>
+                    <span>${item.options.duration}</span>
+                </div>
+            `;
+            card.addEventListener('click', () => {
+                inputSection.classList.add('hidden');
+                displayOutput(item.topic, item.options.duration, item.html);
+            });
+            historyGrid.appendChild(card);
+        });
     }
 });

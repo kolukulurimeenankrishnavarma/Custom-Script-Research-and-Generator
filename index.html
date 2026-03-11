@@ -43,14 +43,69 @@
                     </div>
                 </div>
                 
-                <div class="form-group row">
-                    <div class="col">
+                <div class="grid-form">
+                    <div class="form-group">
                         <label for="durationInput">Target Duration</label>
                         <select id="durationInput" required>
                             <option value="" disabled selected>Select duration...</option>
                             <option value="short">Short (3-5 mins)</option>
                             <option value="medium">Medium (8-12 mins)</option>
                             <option value="long">Long In-Depth (15-20 mins)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nicheInput">Niche / Content Type</label>
+                        <select id="nicheInput" required>
+                            <option value="educational" selected>Educational / Documentary</option>
+                            <option value="entertainment">Entertainment / Storytelling</option>
+                            <option value="tech">Tech / Tutorial</option>
+                            <option value="business">Business / Finance</option>
+                            <option value="lifestyle">Lifestyle / Travel</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="toneInput">Voice Tone</label>
+                        <select id="toneInput" required>
+                            <option value="engaging" selected>Engaging & Energetic</option>
+                            <option value="serious">Serious & Authoritative</option>
+                            <option value="humorous">Humorous & Witty</option>
+                            <option value="calm">Calm & Minimalist</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contentTypeInput">Production Type</label>
+                        <select id="contentTypeInput" required>
+                            <option value="mixed" selected>Mixed (Face + B-Roll)</option>
+                            <option value="faceless">Faceless (Stock + Animation)</option>
+                            <option value="on-camera">On-Camera Focus</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="options-row">
+                    <div class="toggle-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hookToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Include Hook</span>
+                    </div>
+
+                    <div class="toggle-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="seoToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span>SEO Keywords</span>
+                    </div>
+
+                    <div class="form-group flex-grow">
+                        <select id="animationInput">
+                            <option value="normal" selected>Normal Visual Descriptors</option>
+                            <option value="detailed">Detailed AI Image/Video Prompts</option>
                         </select>
                     </div>
                 </div>
@@ -60,6 +115,15 @@
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </form>
+        </section>
+
+        <!-- History Section -->
+        <section class="history-section" id="historyContainer">
+            <h3 class="section-title">Recent Scripts</h3>
+            <div class="history-grid" id="historyGrid">
+                <!-- History items injected by JS -->
+                <p class="empty-history">No recent research found.</p>
+            </div>
         </section>
 
         <!-- Loading / Progress Section (Hidden initially) -->
