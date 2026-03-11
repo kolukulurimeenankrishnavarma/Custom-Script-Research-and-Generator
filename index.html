@@ -24,13 +24,49 @@
     <main class="container">
         <!-- Header -->
         <header class="hero">
-            <div class="badge">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>AI Powered Deep Research</span>
+            <div class="header-top">
+                <div class="badge">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>AI Powered Deep Research</span>
+                </div>
+                <button class="btn-icon" id="settingsBtn" title="API Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
             </div>
             <h1 class="title">Generate <span class="gradient-text">Masterpiece</span> Video Scripts</h1>
             <p class="subtitle">Enter a topic and duration. Our algorithmic engine performs deep research, simplifies complex concepts, and generates an authentic, engaging script entirely from scratch.</p>
         </header>
+
+        <!-- Settings Modal -->
+        <div class="modal-overlay hidden" id="settingsModal">
+            <div class="modal-content card">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-key"></i> API Configuration</h2>
+                    <button class="close-btn" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-desc">This application uses the Google Gemini API to generate scripts. Since this app runs entirely in your browser without a backend server, you must provide your own free API key.</p>
+                    <div class="api-instructions">
+                        <ol>
+                            <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" class="gradient-text">Google AI Studio <i class="fa-solid fa-external-link-alt" style="font-size: 0.8em;"></i></a>.</li>
+                            <li>Sign in with your Google account.</li>
+                            <li>Click "Create API Key" and copy it.</li>
+                        </ol>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiKeyInput">Gemini API Key</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock input-icon"></i>
+                            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." autocomplete="off">
+                        </div>
+                        <small class="form-hint">Your key is stored securely in your browser's local storage and is never sent anywhere except directly to Google's API.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary" id="saveKeyBtn">Save API Key</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Input Section -->
         <section class="card input-section" id="inputSection">
