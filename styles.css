@@ -184,6 +184,25 @@ h1, h2, h3, h4, h5, h6 {
     right: 0;
 }
 
+.btn-icon.attention::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background-color: #ef4444;
+    border: 2px solid var(--bg-dark);
+    border-radius: 50%;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
 .btn-icon:hover {
     color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
@@ -445,6 +464,57 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(22px);
+}
+
+/* Script Content Specific Styles */
+#scriptContent .audio-cue {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--accent-light);
+    border-left: 4px solid var(--accent-light);
+}
+
+#scriptContent .visual-cue i,
+#scriptContent .audio-cue i {
+    margin-right: var(--spacing-sm);
+    font-size: 1.1rem;
+}
+
+#scriptContent .transparency-block {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(10px);
+}
+
+#scriptContent .transparency-block h3 {
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.25rem;
+}
+
+#scriptContent .transparency-block h3 i {
+    color: var(--primary-color);
+}
+
+#scriptContent .transparency-block p,
+#scriptContent .transparency-block ul {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+#scriptContent .transparency-block ul {
+    padding-left: var(--spacing-lg);
+}
+
+#scriptContent .transparency-block li {
+    margin-bottom: 0.25rem;
 }
 
 /* History Section */

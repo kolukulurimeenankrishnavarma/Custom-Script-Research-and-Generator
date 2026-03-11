@@ -42,20 +42,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize UI
     renderHistory();
-    if(geminiApiKey) apiKeyInput.value = geminiApiKey;
+    if(geminiApiKey) {
+        apiKeyInput.value = geminiApiKey;
+    } else {
+        settingsBtn.classList.add('attention');
+    }
 
     // Modal Logic
     settingsBtn.addEventListener('click', () => {
         settingsModal.classList.remove('hidden');
+        settingsBtn.classList.remove('attention');
     });
 
     closeSettingsBtn.addEventListener('click', () => {
         settingsModal.classList.add('hidden');
+        if(!geminiApiKey) settingsBtn.classList.add('attention');
     });
 
     settingsModal.addEventListener('click', (e) => {
         if(e.target === settingsModal) {
             settingsModal.classList.add('hidden');
+            if(!geminiApiKey) settingsBtn.classList.add('attention');
         }
     });
 
@@ -64,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(key) {
             localStorage.setItem('gemini_api_key', key);
             geminiApiKey = key;
+            settingsBtn.classList.remove('attention');
             saveKeyBtn.textContent = "Saved!";
             saveKeyBtn.classList.add('btn-success');
             setTimeout(() => {
@@ -84,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "Adjusting linguistic tone and vocabulary...",
         "Structuring narrative flow (Hook, Body, CTA)...",
         "Synthesizing visual direction and cues...",
+        "Evaluating source authenticity and confidence...",
         "Finalizing formatting..."
     ];
 
@@ -92,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!geminiApiKey) {
             settingsModal.classList.remove('hidden');
+            settingsBtn.classList.remove('attention');
             return;
         }
 
@@ -262,10 +272,16 @@ INSTRUCTIONS:
         }
 
         if(opt.animations === 'detailed') {
-            prompt += `8. For [VISUAL] cues, write highly detailed, descriptive prompts suitable for generating B-roll with an AI video/image generator (e.g., "A hyper-realistic 3D render of a glowing neural network pulsing with blue light, 8k resolution, cinematic camera pan").\n`;
+            prompt += `8. For [VISUAL] cues, write highly detailed, descriptive prompts suitable for generating B-roll with an AI video/image generator.\n`;
         } else {
-            prompt += `8. For [VISUAL] cues, use standard video editing instructions (e.g., "Stock footage of a city at night").\n`;
+            prompt += `8. For [VISUAL] cues, use standard video editing instructions.\n`;
         }
+
+        prompt += `\nCRITICAL FINAL STEP:
+At the very end of your response, after the script conclusion, you MUST append a section titled "## Research Transparency".
+In this section, provide:
+1. **Sources**: A bulleted list of 2-4 plausible, credible sources or academic domains that would verify the facts in this script.
+2. **Confidence Score**: A percentage (e.g., 95%) representing your confidence in the authenticity and accuracy of the content, followed by one short sentence justifying the score.`;
 
         return prompt;
     }
@@ -331,16 +347,38 @@ INSTRUCTIONS:
         html = html.replace(/\[VISUAL CUE:(.*?)\]/gim, '<div class="visual-cue"><i class="fa-solid fa-video"></i> <span>$1</span></div>');
         html = html.replace(/\[AUDIO CUE:(.*?)\]/gim, '<div class="audio-cue"><i class="fa-solid fa-music"></i> <span>$1</span></div>');
 
-        // Paragraphs (split by double newline)
+        // Handle Research Transparency block specifically
+        html = html.replace(/<h2>Research Transparency<\/h2>([\s\S]*?)(?=(<h2>|$))/gi, (match, content) => {
+            let processedContent = content.trim().split('\n').map(line => {
+                if(line.startsWith('- ') || line.startsWith('* ')) {
+                    return `<li>${line.substring(2)}</li>`;
+                }
+                if(line.match(/^\d+\.\s/)) {
+                     // If it's a numbered list item inside transparency
+                     return `<p>${line}</p>`;
+                }
+                return `<p>${line}</p>`;
+            }).join('');
+            
+            // Clean up list items by wrapping consecutive <li> in <ul>
+            processedContent = processedContent.replace(/(<li>.*?<\/li>)+/g, match => `<ul>${match}</ul>`);
+
+            return `<div class="transparency-block">
+                <h3><i class="fa-solid fa-shield-halved"></i> Research Transparency</h3>
+                ${processedContent}
+            </div>`;
+        });
+
+        // Paragraphs (split by double newline, avoiding already formatted blocks)
         const paragraphs = html.split(/\n\n+/);
         html = paragraphs.map(p => {
             p = p.trim();
-            if (p.startsWith('<h') || p.startsWith('<div class="visual-cue"') || p.startsWith('<div class="audio-cue"')) {
+            if (p.startsWith('<h') || p.startsWith('<div class="visual-cue"') || p.startsWith('<div class="audio-cue"') || p.startsWith('<div class="transparency-block"')) {
                 return p;
-            } else if (p) {
+            } else if (p && !p.startsWith('<li>') && !p.startsWith('<ul>')) {
                 return `<p>${p}</p>`;
             }
-            return '';
+            return p; // Keep lists intact
         }).join('\n');
 
         return html;
