@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // New Inputs
     const nicheInput = document.getElementById('nicheInput');
+    const contentStyleInput = document.getElementById('contentStyleInput');
     const toneInput = document.getElementById('toneInput');
     const contentTypeInput = document.getElementById('contentTypeInput');
     const animationInput = document.getElementById('animationInput');
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             topic: topicInput.value.trim(),
             duration: durationInput.value,
             niche: nicheInput.value,
+            contentStyle: contentStyleInput.value,
             tone: toneInput.value,
             contentType: contentTypeInput.value,
             animations: animationInput.value,
@@ -198,15 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<div class="visual-cue">${bodyVisual}</div>`;
             
             const speaker = opt.contentType === 'faceless' ? 'NARRATOR' : 'HOST';
-            html += `<p><strong>${speaker}:</strong> Let's break down the ${opt.niche} perspective. In the world of ${opt.niche}, ${opt.topic} isn't just a concept—it's a tool. Think of it like a digital bridge connecting disparate ideas.</p>`;
+            html += `<p><strong>${speaker}:</strong> Let's break down the ${opt.niche} perspective from an ${opt.contentStyle} angle. In the world of ${opt.niche}, ${opt.topic} isn't just a concept—it's a tool. This style of ${opt.contentStyle} allows us to see how it really fits into the bigger picture.</p>`;
             html += `<div class="audio-cue">[SFX: Subtle digital pulse]</div>`;
-            html += `<p><strong>${speaker}:</strong> The reason this matters is simple. If you take away the noise, what you're left with is a fundamental principle that drives everything.</p>`;
+            html += `<p><strong>${speaker}:</strong> The reason this matters for anyone interested in ${opt.niche} is simple. If you take away the noise, what you're left with is a fundamental principle that drives everything.</p>`;
         }
 
         // OUTRO
         html += `<h3>Final Chapter: Conclusion</h3>`;
-        html += `<p><strong>HOST:</strong> So, the next time you encounter ${opt.topic}, you'll see the patterns. You'll understand the logic.</p>`;
-        html += `<p><strong>HOST:</strong> If you found this ${opt.niche} breakdown helpful, hit that like button. And for more deep dives into ${opt.topic} and beyond, make sure to subscribe.</p>`;
+        html += `<p><strong>HOST:</strong> So, the next time you encounter ${opt.topic}, you'll see the patterns. You'll understand the logic through this ${opt.contentStyle} lens.</p>`;
+        html += `<p><strong>HOST:</strong> If you found this ${opt.niche} ${opt.contentStyle} helpful, hit that like button. And for more deep dives into ${opt.topic} and beyond, make sure to subscribe.</p>`;
 
         return html;
     }
